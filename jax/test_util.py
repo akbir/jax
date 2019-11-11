@@ -31,6 +31,7 @@ import numpy.random as npr
 
 from six.moves import xrange
 
+from . import core
 from . import api
 from . import dtypes
 from . import lax
@@ -249,8 +250,12 @@ def check_grads(f, args, order,
 
 
 @contextmanager
-def count_primitive_compiles():
-  xla.xla_primitive_callable.cache_clear()
+def count_primitive_compiles(clear_cache):
+  if not core.skip_checks:
+    raise SkipTest("compilation counting skipped if core.skip_checks is False")
+
+  if clear_cache:
+    xla.xla_primitive_callable.cache_clear()
 
   # We count how many times we call primitive_computation (which is called
   # inside xla_primitive_callable) instead of xla_primitive_callable so we don't
@@ -271,6 +276,9 @@ def count_primitive_compiles():
 
 @contextmanager
 def count_jit_and_pmap_compiles():
+  if not core.skip_checks:
+    raise SkipTest("compilation counting skipped if core.skip_checks is False")
+
   # No need to clear any caches since we generally jit and pmap fresh callables
   # in tests.
 
