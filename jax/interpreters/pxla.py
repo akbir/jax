@@ -376,11 +376,14 @@ def _shard_sharded_device_array(x, devices, assignments):
     return (xla.device_put(x[assignments[r]], devices[r]) for r in range(n))
 shard_arg_handlers[ShardedDeviceArray] = _shard_sharded_device_array
 
+def _sharded_device_array_constant_handler(c, val, canonicalize_types=True):
+  return c.Constant(onp.asarray(val), canonicalize_types=canonicalize_types)
+xb.register_constant_handler(ShardedDeviceArray, _sharded_device_array_constant_handler)
+
 core.pytype_aval_mappings[ShardedDeviceArray] = ConcreteArray
 xla.device_put_handlers[ShardedDeviceArray] = xla._device_put_array
 xla.pytype_aval_mappings[ShardedDeviceArray] = lambda x: x.aval
 xla.canonicalize_dtype_handlers[ShardedDeviceArray] = identity
-xb.register_constant_handler(ShardedDeviceArray, xla._device_array_constant_handler)
 
 
 class ChunkedDeviceArray(ShardedDeviceArray):
